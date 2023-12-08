@@ -7,7 +7,13 @@ trigger:
 
 resources:
 - repo: self
-
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.BinariesDirectory)'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
 variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'ca61bb87-1a21-4b21-b374-46133a1854bb'
@@ -37,3 +43,11 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+- task: AzureFunctionApp@2
+  inputs:
+    connectedServiceNameARM: 'Azure-ARM-devops'
+    appType: 'functionAppLinux'
+    appName: 'dsff'
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    runtimeStack: 'DOTNET|2.2'
+    deploymentMethod: 'auto'
